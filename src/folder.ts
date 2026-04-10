@@ -1,6 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { setExportDir } from "./exportDir";
-import { setExportPathText, setStatus } from "./form";
+import { setExportPathText, setStatus } from "./status";
 
 export async function pickExportDir(): Promise<string> {
   try {

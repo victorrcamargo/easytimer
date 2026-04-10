@@ -8,9 +8,13 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.github
 dist
 dist-ssr
 *.local
+
+# npm lockfile — this is a yarn project; use yarn.lock instead
+package-lock.json
 
 # Editor directories and files
 .vscode/*

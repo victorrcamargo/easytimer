@@ -2,9 +2,9 @@ import { invoke } from "@tauri-apps/api/core";
 import type { Activity } from "./activity";
 import type { TimerState } from "./timer";
 import { formatClockHms } from "./time";
-import { setExportedPath, setStatus } from "./form";
+import { setStatus } from "./status";
 
-interface ExportParams {
+export interface ExportParams {
   exportDir: string;
   timer: TimerState;
   activity: Activity;
@@ -48,7 +48,6 @@ export async function exportEntry(params: ExportParams): Promise<string> {
       comentarioApontamento,
       comentarioAtividade,
     });
-    setExportedPath(savedPath);
     return savedPath;
   } catch (e) {
     setStatus(`Falha ao exportar: ${String(e)}`, "error");

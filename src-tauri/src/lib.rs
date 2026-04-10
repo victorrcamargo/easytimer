@@ -2,6 +2,7 @@ use chrono::Local;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 use tauri::Manager;
+use tauri_plugin_notification::NotificationExt;
 
 #[derive(Serialize)]
 struct EasyTimerEntry {
@@ -72,10 +73,28 @@ fn save_entry(
     Ok(file_path.to_string_lossy().to_string())
 }
 
+#[tauri::command]
+fn update_tray_timer(app: tauri::AppHandle, task_id: String, time_text: String) -> Result<(), String> {
+    if let Some(tray) = app.tray_by_id("main-tray") {
+        let tooltip = format!("{} — {}", task_id, time_text);
+        tray.set_tooltip(Some(&tooltip)).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn clear_tray_timer(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(tray) = app.tray_by_id("main-tray") {
+        tray.set_tooltip(Some("EasyTimer")).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             use tauri::menu::{Menu, MenuItem};
@@ -87,7 +106,7 @@ pub fn run() {
 
             let icon = app.default_window_icon().cloned();
 
-            let mut tray = TrayIconBuilder::new();
+            let mut tray = TrayIconBuilder::with_id("main-tray");
             if let Some(icon) = icon {
                 tray = tray.icon(icon);
             }
@@ -107,6 +126,16 @@ pub fn run() {
                     }
                     _ => {}
                 })
+                .on_tray_icon_event(|tray, event| {
+                    if let tauri::tray::TrayIconEvent::DoubleClick { .. } = event {
+                        let app = tray.app_handle();
+                        if let Some(w) = app.get_webview_window("main") {
+                            let _ = w.unminimize();
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                    }
+                })
                 .build(app)?;
 
             Ok(())
@@ -115,11 +144,18 @@ pub fn run() {
             tauri::WindowEvent::Resized(_) => {
                 if let Ok(true) = window.is_minimized() {
                     let _ = window.hide();
+                    let _ = window
+                        .app_handle()
+                        .notification()
+                        .builder()
+                        .title("EasyTimer")
+                        .body("Aplicativo minimizado para a bandeja do sistema")
+                        .show();
                 }
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![save_entry])
+        .invoke_handler(tauri::generate_handler![save_entry, update_tray_timer, clear_tray_timer])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
