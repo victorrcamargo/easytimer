@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EasyTimer</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <main class="container">
+      <div class="titlebar">EasyTimer | Apontamento de horas</div>
+
+      <section class="timer-panel">
+        <div class="time" id="time-display">00:00:00</div>
+        <div class="controls">
+          <button
+            id="btn-start"
+            class="btn icon primary"
+            type="button"
+            aria-label="Iniciar"
+          >
+            <span class="icon-play" aria-hidden="true"></span>
+          </button>
+          <button
+            id="btn-finish"
+            class="btn icon danger"
+            type="button"
+            disabled
+            aria-label="Finalizar"
+          >
+            <span class="icon-stop" aria-hidden="true"></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <label class="field">
+          <span class="label">Comentário apontamento</span>
+          <textarea
+            id="comment-apontamento"
+            class="comment"
+            rows="2"
+            placeholder="Comentário apontamento"
+          ></textarea>
+        </label>
+
+        <label class="field">
+          <span class="label">Task</span>
+          <div class="row row--task">
+            <select id="sel-task"></select>
+
+            <button
+              id="btn-switch-activity"
+              class="btn"
+              type="button"
+              title="Mudar atividade (auto-salva a anterior)"
+            >
+              Mudar atividade
+            </button>
+          </div>
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span class="label">Função</span>
+            <select id="sel-funcao"></select>
+          </label>
+
+          <label class="field">
+            <span class="label">Etapa</span>
+            <select id="sel-etapa"></select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">Comentário atividade</span>
+          <textarea
+            id="comment-atividade"
+            class="comment"
+            rows="2"
+            placeholder="Comentário atividade"
+          ></textarea>
+        </label>
+
+        <div class="row row--path">
+          <div class="export-path" id="export-path">
+            Nenhuma pasta selecionada
+          </div>
+          <button
+            id="btn-pick-folder"
+            class="btn icon"
+            type="button"
+            title="Escolher pasta"
+            aria-label="Escolher pasta"
+          >
+            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"
+              />
+            </svg>
+          </button>
+          <button
+            id="btn-export"
+            class="btn icon primary"
+            type="button"
+            disabled
+            title="Salvar apontamento"
+            aria-label="Salvar apontamento"
+          >
+            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                d="M5 3h12l2 2v16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+              />
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                d="M7 3v6h10V3"
+              />
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                d="M8 21v-8h8v8"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="status" id="status">
+          <span id="status-msg"></span>
+          <span id="status-exported-path" class="status-path" hidden></span>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
