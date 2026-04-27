@@ -1,97 +1,146 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/src/styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EasyTimer</title>
-    <script type="module" src="/src/main.ts" defer></script>
+    <script type="module" src="/src/main.ts"></script>
 </head>
 
 <body>
-    <main class="container">
-        <div class="titlebar">EasyTimer | Apontamento de horas</div>
 
-        <section class="timer-panel">
-            <div class="time" id="time-display">00:00:00</div>
-            <div class="controls">
-                <button id="btn-start" class="btn icon primary" type="button" aria-label="Iniciar">
-                    <span class="icon-play" aria-hidden="true"></span>
+    <!-- ═══════════════════════════════ LOGIN VIEW ═══════════════════════════════ -->
+    <main id="view-login" class="view login-container">
+        <div class="login-panel">
+            <header class="login-header">
+                <h1 class="login-title" data-i18n="login.title">EasyTimer</h1>
+                <p class="login-subtitle" data-i18n="login.subtitle">Apontamento de horas</p>
+            </header>
+
+            <nav class="lang-switcher" aria-label="Language / Idioma">
+                <button id="btn-lang-ptbr" class="btn lang-btn" type="button" aria-pressed="true">
+                    PT-BR
                 </button>
-                <button id="btn-finish" class="btn icon danger" type="button" disabled aria-label="Finalizar">
-                    <span class="icon-stop" aria-hidden="true"></span>
+                <button id="btn-lang-esla" class="btn lang-btn" type="button" aria-pressed="false">
+                    ES-LA
+                </button>
+            </nav>
+
+            <form id="form-login" class="login-form" novalidate>
+                <label class="field">
+                    <span class="label" data-i18n="login.emailLabel">E-mail</span>
+                    <input id="login-email" type="email" class="input" autocomplete="email" required
+                        data-i18n-placeholder="login.emailPlaceholder" placeholder="seu@email.com" />
+                </label>
+
+                <label class="field">
+                    <span class="label" data-i18n="login.passwordLabel">Senha</span>
+                    <input id="login-password" type="password" class="input" autocomplete="current-password" required
+                        data-i18n-placeholder="login.passwordPlaceholder" placeholder="••••••••" />
+                </label>
+
+                <div id="login-status" class="login-status" role="alert" hidden></div>
+
+                <button type="submit" class="btn primary login-submit" data-i18n="login.submitBtn">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- ════════════════════════════════ APP VIEW ════════════════════════════════ -->
+    <main id="view-app" class="view hidden">
+        <div class="container">
+            <div class="titlebar">
+                <h1 class="titlebar-title" data-i18n="app.title">EasyTimer | Apontamento de horas</h1>
+                <button id="btn-logout" class="btn btn-ghost" type="button" data-i18n="btn.logout">
+                    Sair
                 </button>
             </div>
-        </section>
 
-        <section class="content-panel">
-            <label class="field">
-                <span class="label">Comentário apontamento</span>
-                <textarea id="comment-apontamento" class="comment" rows="2" placeholder="Comentário apontamento"
-                    required></textarea>
-            </label>
-
-            <label class="field">
-                <span class="label">Task</span>
-                <div class="row row--task">
-                    <select id="sel-task"></select>
-
-                    <button id="btn-switch-activity" class="btn" type="button"
-                        title="Mudar atividade (auto-salva a anterior)">
-                        Mudar atividade
+            <section class="timer-panel">
+                <div class="time" id="time-display">00:00:00</div>
+                <div class="controls">
+                    <button id="btn-start" class="btn icon primary" type="button"
+                        data-i18n-aria-label="btn.start.ariaLabel" aria-label="Iniciar">
+                        <span class="icon-play" aria-hidden="true"></span>
+                    </button>
+                    <button id="btn-finish" class="btn icon danger" type="button" disabled
+                        data-i18n-aria-label="btn.finish.ariaLabel" aria-label="Finalizar">
+                        <span class="icon-stop" aria-hidden="true"></span>
                     </button>
                 </div>
-            </label>
+            </section>
 
-            <div class="row">
+            <section class="content-panel">
                 <label class="field">
-                    <span class="label">Função</span>
-                    <select id="sel-funcao"></select>
+                    <span class="label" data-i18n="label.commentEntry">Comentário apontamento</span>
+                    <textarea id="comment-apontamento" class="comment" rows="2" required
+                        data-i18n-placeholder="placeholder.commentEntry"
+                        placeholder="Comentário apontamento"></textarea>
                 </label>
 
                 <label class="field">
-                    <span class="label">Etapa</span>
-                    <select id="sel-etapa"></select>
+                    <span class="label" data-i18n="label.task">Task</span>
+                    <select id="sel-task"></select>
                 </label>
-            </div>
 
-            <label class="field">
-                <span class="label">Comentário atividade</span>
-                <textarea id="comment-atividade" class="comment" rows="2" placeholder="Comentário atividade"></textarea>
-            </label>
+                <div class="row">
+                    <label class="field">
+                        <span class="label" data-i18n="label.funcao">Função</span>
+                        <select id="sel-funcao"></select>
+                    </label>
 
-            <div class="row row--path">
-                <div class="export-path" id="export-path">
-                    Nenhuma pasta selecionada
+                    <label class="field">
+                        <span class="label" data-i18n="label.etapa">Etapa</span>
+                        <select id="sel-etapa"></select>
+                    </label>
                 </div>
-                <button id="btn-pick-folder" class="btn icon" type="button" title="Escolher pasta"
-                    aria-label="Escolher pasta">
-                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
-                            stroke-linecap="round"
-                            d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
-                    </svg>
-                </button>
-                <button id="btn-export" class="btn icon primary" type="button" disabled title="Salvar apontamento"
-                    aria-label="Salvar apontamento">
-                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
-                            stroke-linecap="round" d="M5 3h12l2 2v16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
-                        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
-                            stroke-linecap="round" d="M7 3v6h10V3" />
-                        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
-                            stroke-linecap="round" d="M8 21v-8h8v8" />
-                    </svg>
-                </button>
-            </div>
 
-            <div class="status" id="status">
-                <span id="status-msg"></span>
-                <span id="status-exported-path" class="status-path" hidden></span>
-            </div>
-        </section>
+                <label class="field">
+                    <span class="label" data-i18n="label.commentActivity">Comentário atividade</span>
+                    <textarea id="comment-atividade" class="comment" rows="2"
+                        data-i18n-placeholder="placeholder.commentActivity"
+                        placeholder="Comentário atividade"></textarea>
+                </label>
+
+                <div class="row row--path">
+                    <div class="export-path" id="export-path">
+                        Nenhuma pasta selecionada
+                    </div>
+                    <button id="btn-pick-folder" class="btn icon" type="button" data-i18n-title="btn.pickFolder.title"
+                        data-i18n-aria-label="btn.pickFolder.ariaLabel" title="Escolher pasta"
+                        aria-label="Escolher pasta">
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
+                                stroke-linecap="round"
+                                d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+                        </svg>
+                    </button>
+                    <button id="btn-export" class="btn icon primary" type="button" disabled
+                        data-i18n-title="btn.export.title" data-i18n-aria-label="btn.export.ariaLabel"
+                        title="Salvar apontamento" aria-label="Salvar apontamento">
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
+                                stroke-linecap="round" d="M5 3h12l2 2v16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
+                                stroke-linecap="round" d="M7 3v6h10V3" />
+                            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
+                                stroke-linecap="round" d="M8 21v-8h8v8" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="status" id="status" role="status" aria-live="polite">
+                    <span id="status-msg"></span>
+                    <span id="status-exported-path" class="status-path" hidden></span>
+                </div>
+            </section>
+        </div>
     </main>
+
 </body>
 
 </html>

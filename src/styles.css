@@ -99,15 +99,6 @@ body {
     gap: var(--spacing-md);
 }
 
-.titlebar {
-    font-size: var(--font-size-md);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs);
-    user-select: none;
-    margin: 0 auto;
-}
-
 .timer-panel {
     background: var(--color-surface);
     border: 1px solid var(--color-surface-border);
@@ -317,28 +308,6 @@ textarea {
     height: 60px;
 }
 
-/* Row specific for task + switch button: equal heights */
-.row--task {}
-
-.row--task select,
-.row--task .btn {
-    height: 36px;
-    padding: var(--spacing-sm) var(--spacing-lg);
-}
-
-/* Make the task select shrink to leave space for a larger switch button */
-.row--task select {
-    width: auto;
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: calc(100% - 150px);
-}
-
-.row--task .btn {
-    flex: 0 0 140px;
-    white-space: nowrap;
-}
-
 /* Extra spacing above path row */
 .row--path {
     margin-top: var(--spacing-xl);
@@ -352,21 +321,137 @@ textarea {
     white-space: nowrap;
 }
 
-.tray-timer-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-    cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
+/* ─────────────────────────── View toggling ──────────────────────────── */
+
+.hidden {
+    display: none !important;
 }
 
-.tray-timer-toggle input[type="checkbox"] {
-    cursor: pointer;
-    accent-color: var(--color-primary);
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
+/* ─────────────────────────── App titlebar ───────────────────────────── */
+
+.titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xs) 0;
+    user-select: none;
+}
+
+.titlebar-title {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    box-shadow: none;
+}
+
+.btn-ghost:hover {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+    background: transparent;
+}
+
+/* ─────────────────────────── Login view ─────────────────────────────── */
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+}
+
+.login-panel {
+    width: 100%;
+    max-width: 360px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl) calc(var(--spacing-xl) * 2);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.login-header {
+    text-align: center;
+}
+
+.login-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.login-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.lang-switcher {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+.lang-btn {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: var(--spacing-xs) var(--spacing-lg);
+    opacity: 0.55;
+}
+
+.lang-btn[aria-pressed="true"] {
+    opacity: 1;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.input {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-control-border);
+    padding: 8px var(--spacing-lg);
+    font: inherit;
+    background-color: var(--color-control-bg);
+    color: var(--color-control-text);
+    outline: none;
+    min-width: 0;
+}
+
+.input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.login-status {
+    font-size: var(--font-size-sm);
+    color: var(--color-error);
+    text-align: center;
+    padding: var(--spacing-xs) 0;
+}
+
+.login-submit {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-base);
 }

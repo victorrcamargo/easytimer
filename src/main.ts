@@ -1,6 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
-import { defaultActivity, type Activity } from "./activity";
+import { defaultActivity } from "./activity";
+import { isAuthenticated, logout } from "./auth";
 import { requireElement } from "./dom";
+import { applyTranslations, getLocale, initLocale, t } from "./i18n";
+import { initLoginView, showAppView, showLoginView } from "./login";
+import { fetchActivityOptions } from "./services/activityService";
 import { formatDurationHms } from "./time";
 import {
     createTimer,
@@ -11,31 +15,30 @@ import {
 } from "./timer";
 import type { TimerState } from "./timer";
 import { getExportDir } from "./exportDir";
-import { populateSelects, readActivity, writeActivity } from "./form";
-import {
-    setExportedPath,
-    setExportPathText,
-    setStatus,
-} from "./status";
+import { populateSelects, readActivity, setSelectsLocked, writeActivity } from "./form";
+import { setExportedPath, setExportPathText, setStatus } from "./status";
 import { exportEntry } from "./export";
 import { pickExportDir } from "./folder";
 
-const timeDisplay = requireElement<HTMLElement>("#time-display");
-const btnStart = requireElement<HTMLButtonElement>("#btn-start");
-const btnFinish = requireElement<HTMLButtonElement>("#btn-finish");
-const btnExport = requireElement<HTMLButtonElement>("#btn-export");
-const btnPickFolder = requireElement<HTMLButtonElement>("#btn-pick-folder");
-const btnSwitchActivity = requireElement<HTMLButtonElement>(
-    "#btn-switch-activity",
-);
-const commentApontamento = requireElement<HTMLTextAreaElement>(
-    "#comment-apontamento",
-);
-const commentAtividade =
-    requireElement<HTMLTextAreaElement>("#comment-atividade");
-
 const timer: TimerState = createTimer();
-let activeActivity: Activity = defaultActivity();
+let appSetupDone = false;
+
+// ─── DOM refs (queried once; only valid after #view-app is visible) ───────────
+
+function getAppElements() {
+    return {
+        timeDisplay: requireElement<HTMLElement>("#time-display"),
+        btnStart: requireElement<HTMLButtonElement>("#btn-start"),
+        btnFinish: requireElement<HTMLButtonElement>("#btn-finish"),
+        btnExport: requireElement<HTMLButtonElement>("#btn-export"),
+        btnPickFolder: requireElement<HTMLButtonElement>("#btn-pick-folder"),
+        btnLogout: requireElement<HTMLButtonElement>("#btn-logout"),
+        commentApontamento: requireElement<HTMLTextAreaElement>("#comment-apontamento"),
+        commentAtividade: requireElement<HTMLTextAreaElement>("#comment-atividade"),
+    };
+}
+
+// ─── Timer & render ───────────────────────────────────────────────────────────
 
 function canExport(): boolean {
     return timer.accumulatedMs > 0 && timer.wallClockEndMs != null;
@@ -44,94 +47,122 @@ function canExport(): boolean {
 function syncTrayTimer(): void {
     if (timer.isRunning) {
         const timeText = formatDurationHms(getElapsedMs(timer));
-        invoke("update_tray_timer", { taskId: activeActivity.task, timeText }).catch(console.error);
+        invoke("update_tray_timer", { taskId: readActivity().task, timeText }).catch(console.error);
     } else {
         invoke("clear_tray_timer").catch(console.error);
     }
 }
 
-function render(): void {
-    timeDisplay.textContent = formatDurationHms(getElapsedMs(timer));
-    btnStart.disabled = timer.isRunning;
-    btnFinish.disabled = !timer.isRunning;
-    btnExport.disabled = !canExport();
+function renderUI(els: ReturnType<typeof getAppElements>): void {
+    els.timeDisplay.textContent = formatDurationHms(getElapsedMs(timer));
+    els.btnStart.disabled = timer.isRunning;
+    els.btnFinish.disabled = !timer.isRunning;
+    els.btnExport.disabled = !canExport();
+    setSelectsLocked(timer.isRunning);
+}
+
+// ─── Event handlers ───────────────────────────────────────────────────────────
+
+function handleStartClick(els: ReturnType<typeof getAppElements>): void {
+    startTimer(timer);
+    setStatus(t("status.counting"));
+    renderUI(els);
     syncTrayTimer();
 }
 
-function handleStartClick(): void {
-    startTimer(timer);
-    setStatus("Contando...");
-    render();
-}
-
-function handleFinishClick(): void {
+function handleFinishClick(els: ReturnType<typeof getAppElements>): void {
     finalizeTimer(timer);
-    setStatus('Finalizado: revise os campos e clique em "Salvar".');
-    render();
+    setStatus(t("status.finished"));
+    renderUI(els);
+    syncTrayTimer();
 }
 
-async function handlePickFolderClick(): Promise<void> {
+async function handlePickFolderClick(els: ReturnType<typeof getAppElements>): Promise<void> {
     await pickExportDir();
-    render();
+    renderUI(els);
+    syncTrayTimer();
 }
 
-async function handleExportClick(): Promise<void> {
+async function handleExportClick(els: ReturnType<typeof getAppElements>): Promise<void> {
     if (!canExport()) return;
-    if (!commentApontamento.value.trim()) {
-        commentApontamento.setCustomValidity("Campo obrigatório");
-        commentApontamento.reportValidity();
+    if (!els.commentApontamento.value.trim()) {
+        els.commentApontamento.setCustomValidity(t("validation.required"));
+        els.commentApontamento.reportValidity();
         return;
     }
-    commentApontamento.setCustomValidity("");
+    els.commentApontamento.setCustomValidity("");
     const savedPath = await exportEntry({
         exportDir: getExportDir(),
         timer,
         activity: readActivity(),
-        comentarioApontamento: commentApontamento.value,
-        comentarioAtividade: commentAtividade.value,
+        comentarioApontamento: els.commentApontamento.value,
+        comentarioAtividade: els.commentAtividade.value,
     });
     resetTimer(timer);
-    commentApontamento.value = "";
-    commentAtividade.value = "";
+    els.commentApontamento.value = "";
+    els.commentAtividade.value = "";
     if (savedPath) {
         setExportedPath(savedPath);
     }
-    render();
+    renderUI(els);
+    syncTrayTimer();
 }
 
-async function handleSwitchActivityClick(): Promise<void> {
-    const nextActivity = readActivity();
-    if (timer.accumulatedMs > 0 || timer.isRunning) {
-        finalizeTimer(timer);
-        await exportEntry({
-            exportDir: getExportDir(),
-            timer,
-            activity: activeActivity,
-            comentarioApontamento: commentApontamento.value,
-            comentarioAtividade: commentAtividade.value,
+function handleLogout(): void {
+    logout();
+    showLoginView();
+}
+
+// ─── App bootstrap ────────────────────────────────────────────────────────────
+
+async function initApp(): Promise<void> {
+    showAppView();
+    applyTranslations();
+
+    let activityOptions;
+    try {
+        activityOptions = await fetchActivityOptions();
+    } catch (e) {
+        setStatus(t("status.loadFailed", { error: String(e) }), "error");
+        console.error("Failed to load activity options:", e);
+        return;
+    }
+
+    const els = getAppElements();
+
+    populateSelects(activityOptions);
+    writeActivity(defaultActivity(activityOptions));
+    setExportPathText(getExportDir());
+
+    if (!appSetupDone) {
+        appSetupDone = true;
+
+        setInterval(() => {
+            renderUI(els);
+            syncTrayTimer();
+        }, 250);
+
+        els.btnStart.addEventListener("click", () => handleStartClick(els));
+        els.btnFinish.addEventListener("click", () => handleFinishClick(els));
+        els.btnPickFolder.addEventListener("click", () => void handlePickFolderClick(els));
+        els.btnExport.addEventListener("click", () => void handleExportClick(els));
+        els.btnLogout.addEventListener("click", handleLogout);
+        els.commentApontamento.addEventListener("input", () => {
+            els.commentApontamento.setCustomValidity("");
         });
     }
-    activeActivity = nextActivity;
-    resetTimer(timer);
-    commentAtividade.value = "";
-    startTimer(timer);
-    setStatus("Atividade alterada para " + activeActivity.task + ". Contando...");
-    render();
+
+    renderUI(els);
+    syncTrayTimer();
 }
 
-function handleCommentApontamentoInput(): void {
-    commentApontamento.setCustomValidity("");
+// ─── Entry point ──────────────────────────────────────────────────────────────
+
+initLocale();
+applyTranslations();
+
+if (isAuthenticated()) {
+    void initApp();
+} else {
+    initLoginView(() => void initApp(), getLocale());
 }
-
-populateSelects();
-writeActivity(activeActivity);
-setExportPathText(getExportDir());
-setInterval(render, 250);
-render();
-
-btnStart.addEventListener("click", handleStartClick);
-btnFinish.addEventListener("click", handleFinishClick);
-btnPickFolder.addEventListener("click", handlePickFolderClick);
-btnExport.addEventListener("click", handleExportClick);
-btnSwitchActivity.addEventListener("click", handleSwitchActivityClick);
-commentApontamento.addEventListener("input", handleCommentApontamentoInput);

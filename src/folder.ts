@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { setExportDir } from "./exportDir";
+import { t } from "./i18n";
 import { setExportPathText, setStatus } from "./status";
 
 export async function pickExportDir(): Promise<string> {
@@ -8,13 +9,13 @@ export async function pickExportDir(): Promise<string> {
     if (typeof selected === "string" && selected.trim().length > 0) {
       setExportDir(selected);
       setExportPathText(selected);
-      setStatus("Pasta de exportação atualizada.");
+      setStatus(t("status.folderUpdated"));
       return selected;
     }
-    setStatus("Seleção de pasta cancelada.");
+    setStatus(t("status.folderCancelled"));
     return "";
   } catch (e) {
-    setStatus(`Falha ao abrir seletor de pasta: ${String(e)}`, "error");
+    setStatus(t("status.folderFailed", { error: String(e) }), "error");
     return "";
   }
 }

@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.local
 
+# Environment — never commit real secrets
+.env
+
 # npm lockfile — this is a yarn project; use yarn.lock instead
 package-lock.json
 

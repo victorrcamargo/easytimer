@@ -27,7 +27,7 @@ fn build_output_dir(export_dir: &str) -> Result<PathBuf, String> {
     if !base.is_dir() {
         return Err("Caminho de exportação não é uma pasta.".into());
     }
-    // Salvar diretamente na pasta escolhida pelo usuário.
+    // Save directly into the user-chosen folder.
     Ok(base.to_path_buf())
 }
 
@@ -55,7 +55,7 @@ fn save_entry(
     };
 
     let out_dir = build_output_dir(&export_dir)?;
-    // A pasta deve existir (validado em build_output_dir), então não criamos subdiretórios extras.
+    // The folder is guaranteed to exist (validated in build_output_dir), so no subdirectories are created.
 
     let ts = now.format("%Y-%m-%d_%H%M%S").to_string();
     let ms = now.timestamp_subsec_millis();

@@ -1,4 +1,5 @@
 import { requireElement } from "./dom";
+import { t } from "./i18n";
 
 export type StatusKind = "info" | "error";
 
@@ -16,12 +17,12 @@ export function setStatus(text: string, kind: StatusKind = "info"): void {
 }
 
 export function setExportPathText(path: string): void {
-    exportPathEl.textContent = path || "Nenhuma pasta selecionada";
+    exportPathEl.textContent = path || t("exportPath.empty");
 }
 
 export function setExportedPath(path: string): void {
     statusEl.dataset.kind = "info";
-    statusMsgEl.textContent = "Exportado:";
+    statusMsgEl.textContent = t("status.exported");
     statusPathEl.hidden = false;
     statusPathEl.textContent = path;
     statusPathEl.setAttribute("title", path);
